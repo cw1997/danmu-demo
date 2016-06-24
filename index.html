@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>swoole结合websocket实现弹幕 code by昌维</title>
+	<!-- <script src="dist/jquery-1.11.1.min.js"></script> -->
+	<script src="http://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+	<script src="dist/jquery.danmu.js"></script>
+	<style type="text/css">
+		#danmu {
+			width: 640px;
+			height: 360px;
+			background-color: gray;
+		}
+		#send_box {
+			position: absolute;
+			top: 370px;
+			left: 0px;
+		}
+	</style>
+</head>
+<body>
+	<script type="text/javascript">
+		console.log('code by 昌维 2016-06-25 03:14:51');
+
+			var ws = new WebSocket("ws://192.168.1.107:1997");
+			ws.onopen = function(){
+			    console.log("握手成功");
+			    ws.send('hello world!!!');
+			};
+			ws.onmessage = function(e){
+			    console.log("message:" + e.data);
+			    var time = jQuery('#danmu').data("nowtime") + 1;
+			    var text_obj = '{ "text":"' + e.data +  '" , "color":"green" ,"size":"1","position":"0","time":"' + time + '" ,"isnew":" "}';   //构造加上了innew属性的字符串danmu对象
+			    console.log(text_obj);
+		    	var new_obj = eval('(' + text_obj + ')');       //转化为js对象
+		    	jQuery('#danmu').danmu("add_danmu", new_obj);    //向插件中添加该danmu对象
+			};
+			ws.onerror = function(){
+			    console.log("error");
+			};
+
+		$(document).ready(function() {
+			$("#danmu").danmu({
+				left: 0,    //区域的起始位置x坐标
+				top: 0 ,  //区域的起始位置y坐标
+				height: 360, //区域的高度
+				width: 640, //区域的宽度
+				zindex :100, //div的css样式zindex
+				speed:20000, //弹幕速度，飞过区域的毫秒数
+				sumtime:50000 , //弹幕运行总时间
+				danmuss:{}, //danmuss对象，运行时的弹幕内容
+				default_font_color:"#FFFFFF", //弹幕默认字体颜色
+				font_size_small:16, //小号弹幕的字体大小,注意此属性值只能是整数
+				font_size_big:24, //大号弹幕的字体大小
+				opacity:"0.9", //弹幕默认透明度
+				top_botton_danmu_time:6000 //顶端底端弹幕持续时间
+			} );
+			$('#danmu').danmu('danmu_start');
+		});
+		function send() {+
+			console.log(document.getElementById('content').value);
+			ws.send(document.getElementById('content').value);
+		}
+	</script>
+	<div id="danmu"></div>
+	<div id="send_box">
+		<input id="content" type="text">
+		<input type="submit" onclick="send()">
+	</div>
+</body>
+</html>
